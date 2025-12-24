@@ -1,6 +1,6 @@
 [versions]
 # Core
-kotlin = "1.9.22"
+kotlin = "1.9.23"
 compileSdk = "34"
 minSdk = "27"
 targetSdk = "34"

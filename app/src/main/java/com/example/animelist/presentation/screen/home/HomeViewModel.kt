@@ -22,70 +22,50 @@ class HomeViewModel @Inject constructor(
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase
 ) : ViewModel() {
 
+    private val _animeList =  MutableStateFlow<List<Anime>>(emptyList())
     private val _searchQuery = MutableStateFlow("")
     private val _selectedStatus = MutableStateFlow<AnimeStatus?>(null)
-    private val _isLoading = MutableStateFlow(false)
-    private val _error = MutableStateFlow<String?>(null)
-    private val _animeList = MutableStateFlow<List<Anime>>(emptyList())
-
-    val uiState: StateFlow<HomeUiState> = combine(
-        _searchQuery,
-        _selectedStatus,
-        _isLoading,
-        _error,
-        _animeList
-    ) { searchQuery, selectedStatus, isLoading, error, animeList ->
-        HomeUiState(
-            searchQuery = searchQuery,
-            selectedStatus = selectedStatus,
-            isLoading = isLoading,
-            error = error,
-            animeList = filterAnime(animeList, searchQuery, selectedStatus)
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = HomeUiState()
-    )
-
-    private var searchJob: Job? = null
 
     init {
-        // автопоиск при изменении запроса
+        // Загружаем данные один раз при создании ViewModel
         viewModelScope.launch {
-            _searchQuery
-                .debounce(500) // Ждём 500мс после последнего ввода
-                .distinctUntilChanged()
-                .collect { query ->
-                    if (query.length >= 2 || query.isEmpty()) {
-                        loadAnime()
-                    }
-                }
-        }
-    }
-
-    fun loadAnime() {
-        searchJob?.cancel()
-        searchJob = viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-
-            try {
-                val query = _searchQuery.value
-                val anime = if (query.length >= 2) {
-                    searchAnimeUseCase(query)
-                } else {
-                    getAnimeUseCase()
-                }
-                _animeList.value = anime
-            } catch (e: Exception) {
-                _error.value = e.message ?: "Ошибка загрузки"
-            } finally {
-                _isLoading.value = false
+            getAnimeUseCase().collect { list ->
+                _animeList.value = list
             }
         }
     }
 
+    // StateFlow для UI
+    val uiState: StateFlow<HomeUiState> = combine(
+        _searchQuery,
+        _selectedStatus,
+        getAnimeListFlow() // ← Flow из UseCase
+    ) { query, status, animeList ->
+        HomeUiState(
+            searchQuery = query,
+            selectedStatus = status,
+            animeList = filterAnime(animeList, query, status),
+            isLoading = false,
+            error = null
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = HomeUiState(isLoading = true)
+    )
+
+    // Flow из UseCase с переключением между поиском и всеми аниме
+    private fun getAnimeListFlow(): Flow<List<Anime>> {
+        return _searchQuery.flatMapLatest { query ->
+            if (query.length >= 2) {
+                searchAnimeUseCase(query)
+            } else {
+                getAnimeUseCase()
+            }
+        }
+    }
+
+    // Остальные методы без изменений
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }

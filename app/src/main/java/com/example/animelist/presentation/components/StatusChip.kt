@@ -1,3 +1,4 @@
+// presentation/components/StatusChip.kt
 package com.example.animelist.presentation.components
 
 import androidx.compose.foundation.BorderStroke
@@ -10,44 +11,47 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-// компонент
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatusChip(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
-    val backgroundColor = if (isSelected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
-
-    val contentColor = if (isSelected) {
-        MaterialTheme.colorScheme.onPrimary
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-
-    Surface(
+    AssistChip(
+        onClick = onClick,
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
+        },
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = backgroundColor,
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (isSelected) Color.Transparent
-            else MaterialTheme.colorScheme.outline
+        enabled = enabled,
+        shape = RoundedCornerShape(8.dp),
+        colors = AssistChipDefaults.assistChipColors(
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+            labelColor = if (isSelected) {
+                MaterialTheme.colorScheme.onPrimaryContainer
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
         ),
-        tonalElevation = if (isSelected) 2.dp else 0.dp
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = contentColor,
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-                .clickable(onClick = onClick)
-        )
-    }
+        border = if (isSelected) {
+            AssistChipDefaults.assistChipBorder(
+                true,
+                borderColor = MaterialTheme.colorScheme.primary,
+                borderWidth = 1.dp
+            )
+        } else {
+            null
+        }
+    )
 }
