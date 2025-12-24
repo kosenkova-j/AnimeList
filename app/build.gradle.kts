@@ -55,6 +55,8 @@ android {
 
     buildFeatures {
         compose = true
+        dataBinding = false
+        viewBinding = false
     }
 
     composeOptions {
@@ -85,6 +87,10 @@ dependencies {
 
     // COMPOSE NAVIGATION
     implementation("androidx.navigation:navigation-compose:2.7.7")
+    //implementation(libs.androidx.adapters)
+    //implementation(libs.androidx.databinding.adapters)
+
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // DATA LAYER
     // 1. Room (локальная БД)

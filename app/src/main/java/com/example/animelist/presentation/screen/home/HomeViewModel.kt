@@ -2,9 +2,11 @@ package com.example.animelist.presentation.screen.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.animelist.data.local.dao.AnimeDao
 import com.example.animelist.domain.model.Anime
 import com.example.animelist.domain.model.AnimeStatus
 import com.example.animelist.domain.usecase.GetAnimeUseCase
+import com.example.animelist.domain.usecase.InitializeCacheUseCase
 import com.example.animelist.domain.usecase.SearchAnimeUseCase
 import com.example.animelist.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,38 +17,46 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 // логика хоумскрина
+// presentation/screen/home/HomeViewModel.kt
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getAnimeUseCase: GetAnimeUseCase,
+    private val getAnimeUseCase: GetAnimeUseCase,      // Flow<List<Anime>>
     private val searchAnimeUseCase: SearchAnimeUseCase,
-    private val toggleFavoriteUseCase: ToggleFavoriteUseCase
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val initializeCacheUseCase: InitializeCacheUseCase
 ) : ViewModel() {
 
-    private val _animeList =  MutableStateFlow<List<Anime>>(emptyList())
+    // Состояния UI
     private val _searchQuery = MutableStateFlow("")
     private val _selectedStatus = MutableStateFlow<AnimeStatus?>(null)
+    private val _isLoading = MutableStateFlow(true)
+    private val _error = MutableStateFlow<String?>(null)
 
     init {
-        // Загружаем данные один раз при создании ViewModel
+        // Инициализация кэша
         viewModelScope.launch {
-            getAnimeUseCase().collect { list ->
-                _animeList.value = list
-            }
+            initializeCacheUseCase()
+            _isLoading.value = false  // Загрузка завершена
         }
     }
+
+    // Flow данных из UseCase
+    private val animeListFlow = getAnimeUseCase()
 
     // StateFlow для UI
     val uiState: StateFlow<HomeUiState> = combine(
         _searchQuery,
         _selectedStatus,
-        getAnimeListFlow() // ← Flow из UseCase
-    ) { query, status, animeList ->
+        animeListFlow,      // ← Поток данных БЕЗ промежуточного _animeList
+        _isLoading,
+        _error
+    ) { query, status, animeList, isLoading, error ->
         HomeUiState(
             searchQuery = query,
             selectedStatus = status,
-            animeList = filterAnime(animeList, query, status),
-            isLoading = false,
-            error = null
+            animeList = filterAndSearchAnime(animeList, query, status),
+            isLoading = isLoading,
+            error = error
         )
     }.stateIn(
         scope = viewModelScope,
@@ -54,18 +64,28 @@ class HomeViewModel @Inject constructor(
         initialValue = HomeUiState(isLoading = true)
     )
 
-    // Flow из UseCase с переключением между поиском и всеми аниме
-    private fun getAnimeListFlow(): Flow<List<Anime>> {
-        return _searchQuery.flatMapLatest { query ->
-            if (query.length >= 2) {
-                searchAnimeUseCase(query)
-            } else {
-                getAnimeUseCase()
+    // Фильтрация и поиск
+    private fun filterAndSearchAnime(
+        animeList: List<Anime>,
+        query: String,
+        status: AnimeStatus?
+    ): List<Anime> {
+        return animeList.filter { anime ->
+            val matchesSearch = query.isEmpty() ||
+                    anime.title.contains(query, ignoreCase = true)
+
+            val matchesStatus = when (status) {
+                null -> true
+                AnimeStatus.FAVORITE -> anime.isFavorite
+                else -> anime.userStatus == status
             }
+
+            matchesSearch && matchesStatus
         }
     }
 
-    // Остальные методы без изменений
+    // === ПУБЛИЧНЫЕ МЕТОДЫ ===
+
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
@@ -77,34 +97,16 @@ class HomeViewModel @Inject constructor(
     fun onToggleFavorite(animeId: Int) {
         viewModelScope.launch {
             toggleFavoriteUseCase(animeId)
-            // обновляем список
-            _animeList.update { list ->
-                list.map { anime ->
-                    if (anime.id == animeId) {
-                        anime.copy(isFavorite = !anime.isFavorite)
-                    } else anime
-                }
-            }
+            // Автоматически обновится через animeListFlow
         }
     }
 
-    private fun filterAnime(
-        animeList: List<Anime>,
-        searchQuery: String,
-        status: AnimeStatus?
-    ): List<Anime> {
-        return animeList.filter { anime ->
-            val matchesSearch = searchQuery.isEmpty() ||
-                    anime.title.contains(searchQuery, ignoreCase = true) ||
-                    anime.description?.contains(searchQuery, ignoreCase = true) == true
-
-            val matchesStatus = when (status) {
-                null -> true
-                AnimeStatus.FAVORITE -> anime.isFavorite
-                else -> anime.userStatus == status
-            }
-
-            matchesSearch && matchesStatus
+    fun retryLoad() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            initializeCacheUseCase()
+            _isLoading.value = false
         }
     }
 }
@@ -112,7 +114,7 @@ class HomeViewModel @Inject constructor(
 data class HomeUiState(
     val searchQuery: String = "",
     val selectedStatus: AnimeStatus? = null,
+    val animeList: List<Anime> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null,
-    val animeList: List<Anime> = emptyList()
+    val error: String? = null
 )

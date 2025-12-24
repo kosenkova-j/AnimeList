@@ -1,6 +1,6 @@
 package com.example.animelist.presentation.di
 
-import com.example.animelist.BuildConfig
+//import com.example.animelist.BuildConfig
 import com.example.animelist.data.remote.api.YummyAnimeApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -15,19 +15,12 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
+// di/NetworkModule.kt (упрощённый)
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
     private const val BASE_URL = "https://api.yani.tv/"
-
-    @Provides
-    @Singleton
-    fun provideMoshi(): Moshi {
-        return Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-    }
 
     @Provides
     @Singleton
@@ -41,32 +34,20 @@ object NetworkModule {
                 val request = original.newBuilder()
                     .addHeader("Accept", "application/json")
                     .addHeader("Accept", "image/avif,image/webp")
-                    // X-Application будет добавляться динамически
+                    .addHeader("Lang", "ru")
                     .build()
                 chain.proceed(request)
             }
-            .addInterceptor(
-                HttpLoggingInterceptor().apply {
-                    level = if (BuildConfig.DEBUG) {
-                        HttpLoggingInterceptor.Level.BODY
-                    } else {
-                        HttpLoggingInterceptor.Level.NONE
-                    }
-                }
-            )
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideRetrofit(
-        okHttpClient: OkHttpClient,
-        moshi: Moshi
-    ): Retrofit {
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .addConverterFactory(MoshiConverterFactory.create())
             .build()
     }
 

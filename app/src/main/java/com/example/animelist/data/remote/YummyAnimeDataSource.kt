@@ -13,7 +13,7 @@ class YummyAnimeDataSource @Inject constructor(
     private val tokenManager: TokenManager
 ) {
 
-    suspend fun getAnime(limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
+    suspend fun getAnimeWithPagination(limit: Int = 20, offset: Int = 0): Result<AnimeListResponse> {
         return try {
             val response = api.getAnime(limit, offset)
             handleResponse(response)
@@ -22,10 +22,15 @@ class YummyAnimeDataSource @Inject constructor(
         }
     }
 
+    // Для обычных случаев - просто список
+    suspend fun getAnime(limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
+        return getAnimeWithPagination(limit, offset).map { it.data }
+    }
+
     suspend fun searchAnime(query: String, limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
         return try {
             val response = api.searchAnime(query, limit, offset)
-            handleResponse(response)
+            handleResponse(response).map { it.data } // ← Извлекаем data
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -50,10 +55,11 @@ class YummyAnimeDataSource @Inject constructor(
             if (body != null) {
                 Result.success(body)
             } else {
-                Result.failure(Exception("Empty response"))
+                Result.failure(Exception("Empty response body"))
             }
         } else {
-            Result.failure(Exception("API error: ${response.code()}"))
+            Result.failure(Exception("API error: ${response.code()} ${response.message()}"))
         }
     }
+
 }

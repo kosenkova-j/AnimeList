@@ -1,6 +1,6 @@
-// di/UseCaseModule.kt
 package com.example.animelist.presentation.di
 
+import com.example.animelist.data.repository.AnimeRepository
 import com.example.animelist.domain.usecase.*
 import dagger.Module
 import dagger.Provides
@@ -15,7 +15,7 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideGetAnimeUseCase(
-        animeRepository: com.example.animelist.data.repository.AnimeRepository
+        animeRepository: AnimeRepository
     ): GetAnimeUseCase {
         return GetAnimeUseCase(animeRepository)
     }
@@ -23,7 +23,7 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideSearchAnimeUseCase(
-        animeRepository: com.example.animelist.data.repository.AnimeRepository
+        animeRepository: AnimeRepository
     ): SearchAnimeUseCase {
         return SearchAnimeUseCase(animeRepository)
     }
@@ -31,7 +31,7 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideToggleFavoriteUseCase(
-        animeRepository: com.example.animelist.data.repository.AnimeRepository
+        animeRepository: AnimeRepository
     ): ToggleFavoriteUseCase {
         return ToggleFavoriteUseCase(animeRepository)
     }
@@ -39,7 +39,7 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideUpdateAnimeStatusUseCase(
-        animeRepository: com.example.animelist.data.repository.AnimeRepository
+        animeRepository: AnimeRepository
     ): UpdateAnimeStatusUseCase {
         return UpdateAnimeStatusUseCase(animeRepository)
     }
@@ -47,8 +47,17 @@ object UseCaseModule {
     @Provides
     @Singleton
     fun provideRateAnimeUseCase(
-        animeRepository: com.example.animelist.data.repository.AnimeRepository
+        animeRepository: AnimeRepository
     ): RateAnimeUseCase {
         return RateAnimeUseCase(animeRepository)
+    }
+
+    // di/UseCaseModule.kt
+    @Provides
+    @Singleton
+    fun provideInitializeCacheUseCase(
+        animeRepository: AnimeRepository
+    ): InitializeCacheUseCase {
+        return InitializeCacheUseCase(animeRepository)
     }
 }
