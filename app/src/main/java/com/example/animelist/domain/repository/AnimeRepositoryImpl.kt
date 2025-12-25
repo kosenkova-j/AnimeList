@@ -1,5 +1,5 @@
 // data/repository/AnimeRepositoryImpl.kt
-package com.example.animelist.data.repository
+package com.example.animelist.domain.repository
 
 import com.example.animelist.data.local.dao.AnimeDao
 import com.example.animelist.data.local.dao.UserAnimeDao
@@ -9,6 +9,8 @@ import com.example.animelist.data.remote.YummyAnimeDataSource
 import com.example.animelist.data.remote.dto.AnimeDto
 import com.example.animelist.domain.model.Anime
 import com.example.animelist.domain.model.AnimeStatus
+import com.example.animelist.data.mapper.AnimeMapper.toEntity
+import com.example.animelist.data.mapper.AnimeMapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -23,54 +25,6 @@ class AnimeRepositoryImpl @Inject constructor(
     private val animeDao: AnimeDao,
     private val userAnimeDao: UserAnimeDao
 ) : AnimeRepository {
-
-    // === ПРЕОБРАЗОВАНИЯ ===
-    private fun AnimeDto.toEntity(): AnimeEntity {
-        return AnimeEntity(
-            id = id,
-            title = title,
-            titleRu = titleRu,
-            posterUrl = poster,
-            description = description,
-            rating = rating,
-            episodes = episodes,
-            type = type,
-            status = status,
-            genres = genres,
-            studios = studios,
-            year = year
-        )
-    }
-
-    private fun AnimeEntity.toDomain(userData: UserAnimeEntity? = null): Anime {
-        return Anime(
-            id = id,
-            title = titleRu ?: title,
-            posterUrl = posterUrl,
-            description = description,
-            rating = rating,
-            episodes = episodes,
-            userStatus = userData?.userStatus,
-            userRating = userData?.userRating,
-            userComment = userData?.userComment,
-            isFavorite = userData?.isFavorite ?: false
-        )
-    }
-
-    private fun AnimeDto.toDomain(): Anime {
-        return Anime(
-            id = id,
-            title = titleRu ?: title,
-            posterUrl = poster,
-            description = description,
-            rating = rating,
-            episodes = episodes,
-            userStatus = null,
-            userRating = null,
-            userComment = null,
-            isFavorite = false
-        )
-    }
 
     // === ИНИЦИАЛИЗАЦИЯ КЭША ===
     override suspend fun initializeCache() {
@@ -130,69 +84,23 @@ class AnimeRepositoryImpl @Inject constructor(
 
     // В AnimeRepositoryImpl.kt
     override suspend fun getAllAnime(): List<Anime> {
-        println("=== USE TEST ANIME ===")
+        // Сначала пробуем кэш
+        val cached = animeDao.getAllAnime().firstOrNull()
+        if (!cached.isNullOrEmpty()) {
+            val userDataMap = userAnimeDao.getAllUserAnime()
+                .firstOrNull()
+                ?.associateBy { it.animeId } ?: emptyMap()
+            return cached.map { it.toDomain(userDataMap[it.id]) }
+        }
 
-        return listOf(
-            Anime(
-                id = 1,
-                title = "Атака титанов",
-                posterUrl = "https://example.com/titan.jpg",
-                description = "Эрен Йегер сражается с титанами",
-                rating = 9.1,
-                episodes = 75,
-                userStatus = AnimeStatus.COMPLETED,
-                userRating = 5,
-                userComment = "Шедевр!",
-                isFavorite = true
-            ),
-            Anime(
-                id = 2,
-                title = "Наруто",
-                posterUrl = "https://example.com/naruto.jpg",
-                description = "Мальчик-ниндзя мечтает стать хокаге",
-                rating = 8.3,
-                episodes = 720,
-                userStatus = AnimeStatus.WATCHING,
-                userRating = 4,
-                userComment = "Длинно, но интересно",
-                isFavorite = false
-            ),
-            Anime(
-                id = 3,
-                title = "Стальной алхимик",
-                posterUrl = "https://example.com/fma.jpg",
-                description = "Братья ищут философский камень",
-                rating = 9.0,
-                episodes = 64,
-                userStatus = AnimeStatus.PLANNED,
-                userRating = null,
-                userComment = null,
-                isFavorite = true
-            ),
-            Anime(
-                id = 4,
-                title = "Твоё имя",
-                posterUrl = "https://example.com/kiminonawa.jpg",
-                description = "Парень и девушка меняются телами",
-                rating = 8.9,
-                episodes = 1,
-                userStatus = AnimeStatus.COMPLETED,
-                userRating = 5,
-                userComment = "Плакала",
-                isFavorite = true
-            ),
-            Anime(
-                id = 5,
-                title = "Чёрный клевер",
-                posterUrl = "https://example.com/blackclover.jpg",
-                description = "Мальчик без магии хочет стать магическим императором",
-                rating = 7.5,
-                episodes = 170,
-                userStatus = AnimeStatus.DROPPED,
-                userRating = 3,
-                userComment = "Надоел главный герой",
-                isFavorite = false
-            )
+        // Если кэш пуст — загружаем из API
+        return remoteDataSource.getAnime().fold(
+            onSuccess = { dtoList ->
+                val entities = dtoList.map { it.toEntity() }
+                animeDao.insertAllAnime(entities)
+                dtoList.map { it.toDomain() }
+            },
+            onFailure = { emptyList() }
         )
     }
 

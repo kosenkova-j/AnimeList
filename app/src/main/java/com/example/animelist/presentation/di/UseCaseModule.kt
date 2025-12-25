@@ -1,6 +1,6 @@
 package com.example.animelist.presentation.di
 
-import com.example.animelist.data.repository.AnimeRepository
+import com.example.animelist.domain.repository.AnimeRepository
 import com.example.animelist.domain.usecase.*
 import dagger.Module
 import dagger.Provides

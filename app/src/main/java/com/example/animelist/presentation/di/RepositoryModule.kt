@@ -1,8 +1,8 @@
 // di/RepositoryModule.kt
 package com.example.animelist.di
 
-import com.example.animelist.data.repository.AnimeRepositoryImpl
-import com.example.animelist.data.repository.AnimeRepository
+import com.example.animelist.domain.repository.AnimeRepositoryImpl
+import com.example.animelist.domain.repository.AnimeRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -9,7 +9,6 @@ import com.example.animelist.data.local.database.RoomConverters
 import java.util.Date
 
 @Entity(tableName = "anime_cache")
-@TypeConverters(RoomConverters::class)
 data class AnimeEntity(
     @PrimaryKey val id: Int,
     val title: String,

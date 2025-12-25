@@ -1,7 +1,7 @@
 // domain/usecase/InitializeCacheUseCase.kt
 package com.example.animelist.domain.usecase
 
-import com.example.animelist.data.repository.AnimeRepository
+import com.example.animelist.domain.repository.AnimeRepository
 import javax.inject.Inject
 
 class InitializeCacheUseCase @Inject constructor(

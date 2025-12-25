@@ -42,41 +42,23 @@ class YummyAnimeDataSource @Inject constructor(
 //            Result.failure(e)
 //        }
 //    }
-    suspend fun getAnime(limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
-        println("=== DIAGNOSTIC API ===")
-
-        return try {
-            val response = api.getAnime(limit, offset)
-            println("Answer code: ${response.code()}")
-
-            if (response.isSuccessful) {
-                // 1. Попробуем как есть
-                val body = response.body()
-                println("Body type: ${body?.javaClass?.simpleName}")
-
-                // 2. Посмотрим сырой JSON
-                val rawJson = response.raw().body?.string() ?: "null"
-                println("Raw JSON (first 300 symbols):")
-                println(rawJson.take(300))
-
-                // 3. Обработаем
-                if (body != null) {
-                    println("Success: got body")
-                    Result.success(body.data ?: emptyList())
-                } else {
-                    println("Error: empty body")
-                    Result.failure(Exception("Empty response"))
-                }
+suspend fun getAnime(limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
+    return try {
+        val response = api.getAnime(limit, offset)
+        if (response.isSuccessful) {
+            val body = response.body()
+            if (body != null) {
+                Result.success(body.data)
             } else {
-                println("HTTP error: ${response.code()}")
-                Result.failure(Exception("HTTP ${response.code()}"))
+                Result.failure(Exception("Empty response"))
             }
-        } catch (e: Exception) {
-            println("Exception: ${e.message}")
-            e.printStackTrace()
-            Result.failure(e)
+        } else {
+            Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
         }
+    } catch (e: Exception) {
+        Result.failure(e)
     }
+}
 
     suspend fun searchAnime(query: String, limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
         return try {

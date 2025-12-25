@@ -1,6 +1,8 @@
 // data/repository/AnimeRepository.kt
-package com.example.animelist.data.repository
+package com.example.animelist.domain.repository
 
+import com.example.animelist.data.mapper.AnimeMapper.toEntity
+import com.example.animelist.data.mapper.AnimeMapper.toDomain
 import com.example.animelist.domain.model.Anime
 import com.example.animelist.domain.model.AnimeStatus
 import kotlinx.coroutines.flow.Flow

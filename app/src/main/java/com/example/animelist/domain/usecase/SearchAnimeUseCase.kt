@@ -1,7 +1,7 @@
 package com.example.animelist.domain.usecase
 
 import com.example.animelist.domain.model.Anime
-import com.example.animelist.data.repository.AnimeRepository
+import com.example.animelist.domain.repository.AnimeRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
