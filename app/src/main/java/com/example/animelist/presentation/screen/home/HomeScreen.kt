@@ -1,16 +1,12 @@
 package com.example.animelist.presentation.screen.home
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.animelist.domain.model.Anime
-import com.example.animelist.presentation.components.AnimeCard
-import com.example.animelist.presentation.screen.home.components.AnimeList
 import com.example.animelist.presentation.screen.home.components.SearchSection
 
 // главный экран
@@ -107,6 +103,8 @@ fun HomeScreen(
                         animeList = uiState.animeList,
                         onAnimeClick = onAnimeClick,
                         onToggleFavorite = viewModel::onToggleFavorite,
+                        onLoadMore = viewModel::loadMore,           // ← Новое
+                        isLoadingMore = uiState.isLoadingMore,      // ← Новое
                         modifier = Modifier.fillMaxSize()
                     )
                 }

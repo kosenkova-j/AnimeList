@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.animelist.data.local.dao.AnimeDao
 import com.example.animelist.domain.model.Anime
 import com.example.animelist.domain.model.AnimeStatus
+import com.example.animelist.domain.repository.AnimeRepository
 import com.example.animelist.domain.usecase.GetAnimeUseCase
 import com.example.animelist.domain.usecase.InitializeCacheUseCase
 import com.example.animelist.domain.usecase.SearchAnimeUseCase
@@ -20,62 +21,57 @@ import javax.inject.Inject
 // presentation/screen/home/HomeViewModel.kt
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getAnimeUseCase: GetAnimeUseCase,      // Flow<List<Anime>>
+    private val getAnimeUseCase: GetAnimeUseCase,
     private val searchAnimeUseCase: SearchAnimeUseCase,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
-    private val initializeCacheUseCase: InitializeCacheUseCase
+    private val initializeCacheUseCase: InitializeCacheUseCase,
+    private val repository: AnimeRepository  // ← Добавляем для пагинации
 ) : ViewModel() {
 
-    // Состояния UI
     private val _searchQuery = MutableStateFlow("")
     private val _selectedStatus = MutableStateFlow<AnimeStatus?>(null)
     private val _isLoading = MutableStateFlow(true)
+    private val _isLoadingMore = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
+    private val _canLoadMore = MutableStateFlow(true)
 
-//    init {
-//        // Инициализация кэша
-//        viewModelScope.launch {
-//            initializeCacheUseCase()
-//            _isLoading.value = false  // Загрузка завершена
-//        }
-//    }
+    private var currentOffset = 0
+    private val pageSize = 30
 
     init {
-        println("HomeViewModel created")
-
         viewModelScope.launch {
-            println("Initializing cache...")
             initializeCacheUseCase()
-            println("Cache initialized")
             _isLoading.value = false
-        }
-
-        // Логируем данные из Flow
-        viewModelScope.launch {
-            getAnimeUseCase().collect { list ->
-                println("Info fom Flow: ${list.size} anime")
-                list.forEach { println("  - ${it.title}") }
-            }
         }
     }
 
-    // Flow данных из UseCase
     private val animeListFlow = getAnimeUseCase()
 
-    // StateFlow для UI
     val uiState: StateFlow<HomeUiState> = combine(
         _searchQuery,
         _selectedStatus,
-        animeListFlow,      // ← Поток данных БЕЗ промежуточного _animeList
+        animeListFlow,
         _isLoading,
-        _error
-    ) { query, status, animeList, isLoading, error ->
+        _isLoadingMore,
+        _error,
+        _canLoadMore
+    ) { values ->
+        val query = values[0] as String
+        val status = values[1] as AnimeStatus?
+        val animeList = values[2] as List<Anime>
+        val isLoading = values[3] as Boolean
+        val isLoadingMore = values[4] as Boolean
+        val error = values[5] as String?
+        val canLoadMore = values[6] as Boolean
+
         HomeUiState(
             searchQuery = query,
             selectedStatus = status,
             animeList = filterAndSearchAnime(animeList, query, status),
             isLoading = isLoading,
-            error = error
+            isLoadingMore = isLoadingMore,
+            error = error,
+            canLoadMore = canLoadMore
         )
     }.stateIn(
         scope = viewModelScope,
@@ -103,11 +99,39 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // === ПУБЛИЧНЫЕ МЕТОДЫ ===
+    fun loadMore() {
+        if (_isLoadingMore.value || !_canLoadMore.value) return
+
+        viewModelScope.launch {
+            _isLoadingMore.value = true
+            currentOffset += pageSize
+
+            repository.getAnime(limit = pageSize, offset = currentOffset).let { newAnime ->
+                if (newAnime.isEmpty()) {
+                    _canLoadMore.value = false
+                }
+                // Аниме автоматически добавятся в Flow через Room
+            }
+
+            _isLoadingMore.value = false
+        }
+    }
 
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
+
+        // Если поиск — ищем через API
+        if (query.length >= 2) {
+            viewModelScope.launch {
+                _isLoading.value = true
+                repository.searchAnime(query)
+                _isLoading.value = false
+            }
+        }
     }
+
+    // === ПУБЛИЧНЫЕ МЕТОДЫ ===
+
 
     fun onStatusSelected(status: AnimeStatus?) {
         _selectedStatus.value = status
@@ -135,5 +159,7 @@ data class HomeUiState(
     val selectedStatus: AnimeStatus? = null,
     val animeList: List<Anime> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val isLoadingMore: Boolean = false,  // ← Новое
+    val error: String? = null,
+    val canLoadMore: Boolean = true       // ← Новое
 )
