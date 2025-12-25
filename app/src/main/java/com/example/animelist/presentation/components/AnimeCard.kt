@@ -223,53 +223,11 @@ private fun AnimeRating(
     }
 }
 
-// Статус пользователя и его рейтинг
-@Composable
-private fun UserStatusSection(
-    userStatus: AnimeStatus?,
-    userRating: Int?,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        // Статус пользователя
-        userStatus?.let { status ->
-            StatusChip(
-                label = getStatusDisplayName(status),
-                isSelected = true,
-                onClick = {},
-                modifier = Modifier.weight(1f)
-            )
-        } ?: run {
-            // Если статуса нет
-            StatusChip(
-                label = "Не просмотрено",
-                isSelected = false,
-                onClick = {},
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Рейтинг пользователя (1-5 звёзд)
-        userRating?.let { rating ->
-            UserRatingStars(
-                rating = rating,
-                maxRating = 5
-            )
-        }
-    }
-}
-
 // Звёздочки рейтинга пользователя
 @Composable
 private fun UserRatingStars(
     rating: Int,
-    maxRating: Int = 5,
+    maxRating: Int = 10,
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier) {
@@ -288,13 +246,70 @@ private fun UserRatingStars(
     }
 }
 
+// presentation/components/AnimeCard.kt
+
+@Composable
+private fun UserRatingDisplay(
+    rating: Int,  // 1-10
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        // Одна звезда как иконка
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(16.dp)
+        )
+
+        // Оценка числом
+        Text(
+            text = "$rating/10",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
+    }
+}
+
+// Используем в UserStatusSection:
+@Composable
+private fun UserStatusSection(
+    userStatus: AnimeStatus?,
+    userRating: Int?,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        StatusChip(
+            label = getStatusDisplayName(userStatus),
+            isSelected = userStatus != null,
+            onClick = {},
+            modifier = Modifier.weight(1f)
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        userRating?.let { rating ->
+            UserRatingDisplay(rating = rating)  // ← Новый компонент
+        }
+    }
+}
+
 // Вспомогательная функция для отображения статусов
-private fun getStatusDisplayName(status: AnimeStatus): String {
+private fun getStatusDisplayName(status: AnimeStatus?): String {
     return when (status) {
         AnimeStatus.WATCHING -> "Смотрю"
         AnimeStatus.COMPLETED -> "Просмотрено"
         AnimeStatus.PLANNED -> "В планах"
         AnimeStatus.DROPPED -> "Брошено"
         AnimeStatus.FAVORITE -> "Любимое"
+        null -> "Не просмотрено"
     }
 }

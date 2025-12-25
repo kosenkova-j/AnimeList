@@ -135,6 +135,7 @@ class HomeViewModel @Inject constructor(
 
     fun onStatusSelected(status: AnimeStatus?) {
         _selectedStatus.value = status
+        _searchQuery.value = ""
     }
 
     fun onToggleFavorite(animeId: Int) {

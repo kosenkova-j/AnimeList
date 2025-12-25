@@ -4,16 +4,21 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.animelist.domain.model.AnimeStatus
 import com.example.animelist.presentation.components.StatusChip
 
 // поиск и фильтры
+// presentation/screen/home/components/SearchSection.kt
+
 @Composable
 fun SearchSection(
     searchQuery: String,
@@ -24,7 +29,7 @@ fun SearchSection(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        // поле поиска
+        // Поле поиска
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchQueryChange,
@@ -36,12 +41,22 @@ fun SearchSection(
                     contentDescription = "Поиск"
                 )
             },
+            // Кнопка очистки
+            trailingIcon = {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { onSearchQueryChange("") }) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Очистить"
+                        )
+                    }
+                }
+            },
             shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-            ),
-            singleLine = true
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search
+            )
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -49,7 +64,11 @@ fun SearchSection(
         // Фильтры по статусу
         StatusFilterRow(
             selectedStatus = selectedStatus,
-            onStatusSelected = onStatusSelected
+            onStatusSelected = { status ->
+                // Сбрасываем поиск при смене вкладки
+                onSearchQueryChange("")
+                onStatusSelected(status)
+            }
         )
     }
 }

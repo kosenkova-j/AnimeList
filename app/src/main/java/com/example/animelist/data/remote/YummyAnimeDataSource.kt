@@ -48,14 +48,28 @@ class YummyAnimeDataSource @Inject constructor(
 
     suspend fun getAnimeById(id: Int): Result<AnimeDto> {
         return try {
+            println("API: getAnimeById($id)")
             val response = api.getAnimeById(id)
-            val anime = response.body()?.response
-            if (response.isSuccessful && anime != null) {
-                Result.success(anime)
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                val anime = body?.response
+
+                println("API response: ${anime?.title}")
+
+                if (anime != null) {
+                    Result.success(anime)
+                } else {
+                    println("API: response is null")
+                    Result.failure(Exception("Empty response"))
+                }
             } else {
-                Result.failure(Exception("Anime not found"))
+                println("API error: ${response.code()}")
+                Result.failure(Exception("HTTP ${response.code()}"))
             }
         } catch (e: Exception) {
+            println("API exception: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }

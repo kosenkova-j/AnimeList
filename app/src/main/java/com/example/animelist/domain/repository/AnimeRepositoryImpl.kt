@@ -112,11 +112,34 @@ class AnimeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAnimeById(id: Int): Anime? {
+        println("getAnimeById: $id")
+
+        // Сначала проверяем локальный кэш
+        val cachedAnime = animeDao.getAnimeById(id)
+        val userData = userAnimeDao.getUserAnime(id)
+
+        if (cachedAnime != null) {
+            println("Found in cache: ${cachedAnime.title}")
+            return cachedAnime.toDomain(userData)
+        }
+
+        // Если нет в кэше — загружаем из API
+        println("Not in cache, loading from API...")
         return remoteDataSource.getAnimeById(id).fold(
-            onSuccess = { dto -> dto.toDomain() },
-            onFailure = { null }
+            onSuccess = { dto ->
+                println("Loaded from API: ${dto.title}")
+                // Сохраняем в кэш
+                val entity = dto.toEntity()
+                animeDao.insertAnime(entity)
+                dto.toDomain()
+            },
+            onFailure = { error ->
+                println("API error: ${error.message}")
+                null
+            }
         )
     }
+
 
     // === ПОИСК ===
     override suspend fun searchAnime(query: String): List<Anime> {

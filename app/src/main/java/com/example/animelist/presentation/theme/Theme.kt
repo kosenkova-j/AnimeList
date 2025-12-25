@@ -22,8 +22,8 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF6200EE),
-    secondary = Color(0xFF03DAC5),
+    primary = Color(0xFFEE5300),
+    secondary = Color(0xFFEE5300),
     tertiary = Color(0xFFCF6679),
     background = Color.White,
     surface = Color(0xFFF5F5F5),
