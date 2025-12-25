@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.animelist.presentation.screen.home.HomeScreen
 import com.example.animelist.presentation.theme.AnimeListTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -21,10 +22,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AnimeListTheme {
-                // Временно - просто HomeScreen
+                // ТЕСТ: Просто покажите текст
+                Text("Приложение запущено", modifier = Modifier.padding(16.dp))
+
+                // ИЛИ: HomeScreen
                 HomeScreen(
-                    onAnimeClick = { /* позже добавим навигацию */ },
-                    onSearchClick = { /* позже добавим поиск */ }
+                    onAnimeClick = { id -> println("Clicked: $id") },
+                    onSearchClick = { println("Search clicked") }
                 )
             }
         }

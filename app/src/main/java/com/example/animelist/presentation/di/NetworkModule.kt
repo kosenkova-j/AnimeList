@@ -20,8 +20,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://api.yani.tv/"
-
+    // 1. OkHttpClient
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
@@ -30,8 +29,7 @@ object NetworkModule {
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor { chain ->
-                val original = chain.request()
-                val request = original.newBuilder()
+                val request = chain.request().newBuilder()
                     .addHeader("Accept", "application/json")
                     .addHeader("Accept", "image/avif,image/webp")
                     .addHeader("Lang", "ru")
@@ -41,16 +39,30 @@ object NetworkModule {
             .build()
     }
 
+    // 2. Moshi (ЕСЛИ ИСПОЛЬЗУЕТЕ MOSHI)
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create())
+    fun provideMoshi(): Moshi {
+        return Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())  // Для Kotlin классов
             .build()
     }
 
+    // 3. Retrofit с Moshi
+    @Provides
+    @Singleton
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient,
+        moshi: Moshi  // ← ПОЛУЧАЕМ MOSHI
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://api.yani.tv/")  // ← URL ПРАВИЛЬНЫЙ
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))  // ← ПЕРЕДАЁМ MOSHI
+            .build()
+    }
+
+    // 4. API интерфейс
     @Provides
     @Singleton
     fun provideYummyAnimeApi(retrofit: Retrofit): YummyAnimeApi {

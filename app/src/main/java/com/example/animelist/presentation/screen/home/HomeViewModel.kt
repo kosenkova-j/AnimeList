@@ -32,11 +32,30 @@ class HomeViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     private val _error = MutableStateFlow<String?>(null)
 
+//    init {
+//        // Инициализация кэша
+//        viewModelScope.launch {
+//            initializeCacheUseCase()
+//            _isLoading.value = false  // Загрузка завершена
+//        }
+//    }
+
     init {
-        // Инициализация кэша
+        println("HomeViewModel создан")
+
         viewModelScope.launch {
+            println("Инициализация кэша...")
             initializeCacheUseCase()
-            _isLoading.value = false  // Загрузка завершена
+            println("Кэш инициализирован")
+            _isLoading.value = false
+        }
+
+        // Логируем данные из Flow
+        viewModelScope.launch {
+            getAnimeUseCase().collect { list ->
+                println("Данные из Flow: ${list.size} аниме")
+                list.forEach { println("  - ${it.title}") }
+            }
         }
     }
 

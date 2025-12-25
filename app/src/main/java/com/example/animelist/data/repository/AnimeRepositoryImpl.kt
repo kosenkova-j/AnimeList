@@ -74,22 +74,38 @@ class AnimeRepositoryImpl @Inject constructor(
 
     // === ИНИЦИАЛИЗАЦИЯ КЭША ===
     override suspend fun initializeCache() {
+        println("=== ИНИЦИАЛИЗАЦИЯ КЭША ===")
+
         try {
-            if (animeDao.getCount() == 0) {
-                println("Инициализация кэша...")
-                remoteDataSource.getAnime(limit = 50).fold(
-                    onSuccess = { dtoList ->
-                        val entities = dtoList.map { it.toEntity() }
-                        animeDao.insertAllAnime(entities)
-                        println("Кэш инициализирован: ${entities.size} аниме")
-                    },
-                    onFailure = { error ->
-                        println("Ошибка инициализации кэша: ${error.message}")
-                    }
-                )
+            val count = animeDao.getCount()
+            println("В БД сейчас: $count записей")
+
+            if (count == 0) {
+                println("БД пуста, загружаем с API...")
+
+                remoteDataSource.getAnime(limit = 10) // Начните с 10 для теста
+                    .fold(
+                        onSuccess = { dtoList ->
+                            println("Получено с API: ${dtoList.size} аниме")
+
+                            val entities = dtoList.map {
+                                println("  Преобразуем: ${it.title}")
+                                it.toEntity()
+                            }
+
+                            animeDao.insertAllAnime(entities)
+                            println("Сохранено в Room: ${entities.size} аниме")
+                        },
+                        onFailure = { error ->
+                            println("ОШИБКА API: ${error.message}")
+                        }
+                    )
+            } else {
+                println("Кэш уже есть, пропускаем загрузку")
             }
         } catch (e: Exception) {
-            println("Исключение при инициализации кэша: ${e.message}")
+            println("ИСКЛЮЧЕНИЕ в initializeCache: ${e.message}")
+            e.printStackTrace()
         }
     }
 

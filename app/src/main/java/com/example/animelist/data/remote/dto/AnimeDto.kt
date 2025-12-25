@@ -19,7 +19,8 @@ data class AnimeDto(
     @Json(name = "year") val year: Int?
 )
 
-@JsonClass(generateAdapter = true)
+// data/remote/dto/AnimeListResponse.kt
+@JsonClass(generateAdapter = true)  // ← ДОЛЖНО БЫТЬ!
 data class AnimeListResponse(
     @Json(name = "data") val data: List<AnimeDto>,
     @Json(name = "total") val total: Int,

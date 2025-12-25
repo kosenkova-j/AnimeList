@@ -22,9 +22,25 @@ class YummyAnimeDataSource @Inject constructor(
         }
     }
 
-    // Для обычных случаев - просто список
     suspend fun getAnime(limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
-        return getAnimeWithPagination(limit, offset).map { it.data }
+        println("Запрос к API: getAnime(limit=$limit)")
+
+        return try {
+            val response = api.getAnime(limit, offset)
+            println("API ответ: код=${response.code()}, успех=${response.isSuccessful}")
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                println("Тело ответа: $body")
+                Result.success(body?.data ?: emptyList())
+            } else {
+                println("Ошибка API: ${response.errorBody()?.string()}")
+                Result.failure(Exception("API error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            println("Исключение в getAnime: ${e.message}")
+            Result.failure(e)
+        }
     }
 
     suspend fun searchAnime(query: String, limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
