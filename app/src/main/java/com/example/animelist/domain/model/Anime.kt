@@ -7,6 +7,7 @@ data class Anime(
     val posterUrl: String?,
     val description: String?,
     val rating: Double?,
+    val season: Int?,
     val episodes: Int?,
     val userStatus: AnimeStatus?,
     val userRating: Int?,

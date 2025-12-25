@@ -8,19 +8,13 @@ import javax.inject.Inject
 class SearchAnimeUseCase @Inject constructor(
     private val repository: AnimeRepository
 ) {
-    // Для suspend вызовов
-//    suspend operator fun invoke(query: String): List<Anime> {
-//        require(query.length >= 2) { "..." }
-//        return repository.searchAnime(query)
-//    }
-
-    // Для Flow/observable вызовов
+    //флоу
     operator fun invoke(query: String): Flow<List<Anime>> {
         require(query.length >= 2) { "..." }
         return repository.searchAnimeFlow(query)
     }
 
-    // С пагинацией
+    //пагинация
     suspend operator fun invoke(query: String, limit: Int, offset: Int): List<Anime> {
         require(query.length >= 2) { "..." }
         return repository.searchAnime(query, limit, offset)

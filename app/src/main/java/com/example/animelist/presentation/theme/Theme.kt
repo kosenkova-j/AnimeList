@@ -1,36 +1,60 @@
 // presentation/theme/Theme.kt
 package com.example.animelist.presentation.theme
 
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Shapes
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFBB86FC),
-    secondary = Color(0xFF03DAC6),
-    tertiary = Color(0xFFCF6679),
-    background = Color(0xFF121212),
-    surface = Color(0xFF1E1E1E),
-    onPrimary = Color.Black,
-    onSecondary = Color.Black,
-    onBackground = Color.White,
-    onSurface = Color.White
-)
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFFEE5300),
-    secondary = Color(0xFFEE5300),
-    tertiary = Color(0xFFCF6679),
-    background = Color.White,
-    surface = Color(0xFFF5F5F5),
+    primary = CoralAccent,
     onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color.Black,
-    onSurface = Color.Black
+    primaryContainer = PeachLight,
+    onPrimaryContainer = BrownText,
+
+    secondary = PeachDark,
+    onSecondary = Color.White,
+    secondaryContainer = PeachContainer,
+    onSecondaryContainer = BrownText,
+
+    background = CreamWhite,
+    onBackground = BrownText,
+
+    surface = Color.White,
+    onSurface = BrownText,
+    surfaceVariant = PeachContainer,
+    onSurfaceVariant = WarmGray,
+
+    outline = PeachDark,
+    outlineVariant = PeachLight
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = PeachLight,
+    onPrimary = BrownText,
+    primaryContainer = DarkCard,
+    onPrimaryContainer = PeachLight,
+
+    secondary = PeachDark,
+    onSecondary = Color.White,
+    secondaryContainer = DarkCard,
+    onSecondaryContainer = PeachLight,
+
+    background = DarkBackground,
+    onBackground = Color.White,
+
+    surface = DarkSurface,
+    onSurface = Color.White,
+    surfaceVariant = DarkCard,
+    onSurfaceVariant = WarmGray,
+
+    outline = PeachDark,
+    outlineVariant = DarkCard
 )
 
 @Composable
@@ -40,10 +64,18 @@ fun AnimeListTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
+    }
+
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        shapes = Shapes,
         content = content
     )
 }

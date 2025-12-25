@@ -15,6 +15,7 @@ data class AnimeEntity(
     val titleRu: String?,
     val posterUrl: String?,
     val description: String?,
+    val season: Int?,
     val rating: Double?,
     val episodes: Int?,
     val type: String?,

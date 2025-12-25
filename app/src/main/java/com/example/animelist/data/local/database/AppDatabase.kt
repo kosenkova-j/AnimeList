@@ -13,7 +13,7 @@ import com.example.animelist.data.local.entities.UserAnimeEntity
 
 @Database(
     entities = [AnimeEntity::class, UserAnimeEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(RoomConverters::class)

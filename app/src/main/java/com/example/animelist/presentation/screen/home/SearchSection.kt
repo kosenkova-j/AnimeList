@@ -86,7 +86,7 @@ private fun StatusFilterRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         StatusChip(
-            label = "Все",
+            label = "Из поиска",
             isSelected = selectedStatus == null,
             onClick = { onStatusSelected(null) }
         )

@@ -9,14 +9,14 @@ import androidx.compose.ui.unit.sp
 
 val Typography = Typography(
     displayLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Normal,
         fontSize = 57.sp,
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
         fontSize = 45.sp,
         lineHeight = 52.sp
@@ -30,9 +30,9 @@ val Typography = Typography(
 
     // для заголовков
     headlineLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
+        fontSize = 38.sp,
         lineHeight = 40.sp
     ),
     headlineMedium = TextStyle(
@@ -44,21 +44,21 @@ val Typography = Typography(
     headlineSmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
-        fontSize = 24.sp,
+        fontSize = 28.sp,
         lineHeight = 32.sp
     ),
 
     // Для названий аниме
     titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Medium,
-        fontSize = 22.sp,
+        fontSize = 30.sp,
         lineHeight = 28.sp
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
+        fontSize = 20.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
@@ -74,21 +74,21 @@ val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
+        fontSize = 20.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
+        fontSize = 18.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
+        fontSize = 16.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp
     ),

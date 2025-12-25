@@ -1,5 +1,5 @@
 // navigation/AppNavigation.kt
-package com.example.animelist.navigation
+package com.example.animelist.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController

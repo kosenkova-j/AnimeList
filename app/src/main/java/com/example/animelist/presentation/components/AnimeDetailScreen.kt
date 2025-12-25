@@ -1,6 +1,7 @@
-// presentation/screen/detail/AnimeDetailScreen.kt
-package com.example.animelist.presentation.screen.detail
+// presentation/screen/detail/AnimeDetailPreview.kt
+package com.example.animelist.presentation.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,137 +11,119 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.example.animelist.domain.model.Anime
 import com.example.animelist.domain.model.AnimeStatus
+import com.example.animelist.presentation.theme.AnimeListTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AnimeDetailScreen(
-    onBackClick: () -> Unit,
-    viewModel: AnimeDetailViewModel = hiltViewModel()
-) {
-    val uiState by viewModel.uiState.collectAsState()
+// ============ ТЕСТОВЫЕ ДАННЫЕ ============
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        when {
-            uiState.isLoading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            uiState.error != null -> {
-                ErrorContent(
-                    error = uiState.error!!,
-                    onRetry = viewModel::refresh,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-            uiState.anime != null -> {
-                AnimeDetailContent(
-                    anime = uiState.anime!!,
-                    onBackClick = onBackClick,
-                    onStatusClick = viewModel::onStatusClick,
-                    onRatingClick = viewModel::onRatingClick,
-                    onFavoriteClick = viewModel::onToggleFavorite
-                )
-            }
-        }
+private val sampleAnimeNoStatus = Anime(
+    id = 1,
+    title = "Наруто: Ураганные хроники",
+    posterUrl = null,
+    description = "Спустя два с половиной года тренировок с одним из легендарных саннинов, Наруто возвращается в Коноху. Вместе с Сакурой они заново формируют Команду Какаши. Однако им предстоит столкнуться с новыми врагами — организацией Акацуки, которая охотится за джинчурики.",
+    rating = 8.5,
+    episodes = 500,
+    season = 2,
+    userStatus = null,
+    userRating = null,
+    userComment = null,
+    isFavorite = false
+)
 
-        // Диалоги
-        if (uiState.showStatusDialog) {
-            StatusSelectionDialog(
-                currentStatus = uiState.anime?.userStatus,
-                onStatusSelected = viewModel::onStatusSelected,
-                onDismiss = viewModel::onDismissStatusDialog
-            )
-        }
+private val sampleAnimeWatching = Anime(
+    id = 2,
+    title = "Атака титанов: Финальный сезон",
+    posterUrl = null,
+    description = "Несколько лет назад человечество было почти полностью уничтожено титанами. Титаны — огромные создания, которые, казалось бы, не имеют другой цели, кроме как пожирать людей. Оставшиеся в живых укрылись за тремя концентрическими стенами.",
+    rating = 9.1,
+    episodes = 16,
+    season = 4,
+    userStatus = AnimeStatus.WATCHING,
+    userRating = 9,
+    userComment = null,
+    isFavorite = true
+)
 
-        if (uiState.showRatingDialog) {
-            RatingSelectionDialog(
-                currentRating = uiState.anime?.userRating,
-                onRatingSelected = viewModel::onRatingSelected,
-                onDismiss = viewModel::onDismissRatingDialog
-            )
-        }
-    }
-}
+private val sampleAnimeCompleted = Anime(
+    id = 3,
+    title = "Стальной алхимик: Братство",
+    posterUrl = null,
+    description = "Братья Эдвард и Альфонс Элрики в детстве потеряли мать и решили воскресить её с помощью алхимии. Однако что-то пошло не так, и Эдвард потерял ногу, а Альфонс — всё тело. Чтобы спасти душу брата, Эд пожертвовал правой рукой и прикрепил душу Альфонса к доспехам.",
+    rating = 9.5,
+    episodes = 64,
+    season = 1,
+    userStatus = AnimeStatus.COMPLETED,
+    userRating = 10,
+    userComment = null,
+    isFavorite = true
+)
 
-@Composable
-private fun ErrorContent(
-    error: String,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = Icons.Filled.Warning,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(48.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = error,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Text("Повторить")
-        }
-    }
-}
+private val sampleAnimePlanned = Anime(
+    id = 4,
+    title = "Магическая битва",
+    posterUrl = null,
+    description = "Итадори Юдзи — обычный школьник с невероятной физической силой. Однажды он проглатывает проклятый палец демона Рёмена Сукуны, чтобы спасти друзей. Теперь в его теле живёт сильнейшее проклятие, а сам Юдзи становится учеником школы магов.",
+    rating = 8.8,
+    episodes = 24,
+    season = 1,
+    userStatus = AnimeStatus.PLANNED,
+    userRating = null,
+    userComment = null,
+    isFavorite = false
+)
+
+private val sampleAnimeDropped = Anime(
+    id = 5,
+    title = "Боруто: Новое поколение",
+    posterUrl = null,
+    description = "Сын Наруто, Боруто, начинает свой путь ниндзя. История нового поколения героев Конохи.",
+    rating = 6.5,
+    episodes = 293,
+    season = 1,
+    userStatus = AnimeStatus.DROPPED,
+    userRating = 4,
+    userComment = null,
+    isFavorite = false
+)
+
+private val sampleAnimeFavorite = Anime(
+    id = 6,
+    title = "Ванпанчмен",
+    posterUrl = null,
+    description = "Сайтама — герой, который может победить любого противника одним ударом. Но это делает его жизнь невыносимо скучной. Он ищет достойного соперника, но никак не может найти.",
+    rating = 9.0,
+    episodes = 24,
+    season = 2,
+    userStatus = AnimeStatus.FAVORITE,
+    userRating = 10,
+    userComment = null,
+    isFavorite = true
+)
+
+// ============ PREVIEW КОНТЕНТА ============
 
 @Composable
-private fun AnimeDetailContent(
-    anime: Anime,
-    onBackClick: () -> Unit,
-    onStatusClick: () -> Unit,
-    onRatingClick: () -> Unit,
-    onFavoriteClick: () -> Unit
-) {
+private fun PreviewDetailContent(anime: Anime) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
         // Шапка с постером
-        HeaderSection(
-            anime = anime,
-            onBackClick = onBackClick,
-            onFavoriteClick = onFavoriteClick
-        )
+        PreviewHeaderSection(anime = anime)
 
         // Основной контент
         Column(
@@ -162,43 +145,42 @@ private fun AnimeDetailContent(
                 color = MaterialTheme.colorScheme.onBackground
             )
 
-            // Рейтинг и эпизоды
-            InfoChipsRow(anime = anime)
+            // Инфо чипсы
+            PreviewInfoChipsRow(anime = anime)
 
             // Кнопки действий
-            ActionButtonsSection(
+            PreviewActionButtonsSection(
                 userStatus = anime.userStatus,
-                userRating = anime.userRating,
-                onStatusClick = onStatusClick,
-                onRatingClick = onRatingClick
+                userRating = anime.userRating
             )
 
             // Описание
-            DescriptionSection(description = anime.description)
+            PreviewDescriptionSection(description = anime.description)
         }
     }
 }
 
 @Composable
-private fun HeaderSection(
-    anime: Anime,
-    onBackClick: () -> Unit,
-    onFavoriteClick: () -> Unit
-) {
+private fun PreviewHeaderSection(anime: Anime) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(320.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        // Постер на весь фон
-        AsyncImage(
-            model = anime.posterUrl,
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+        // Заглушка постера
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "ПОСТЕР",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
 
-        // Градиент сверху для кнопок
+        // Градиент сверху
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -231,44 +213,42 @@ private fun HeaderSection(
         )
 
         // Кнопка назад
-        IconButton(
-            onClick = onBackClick,
+        Surface(
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.TopStart)
-                .size(40.dp)
-                .background(
-                    color = Color.White.copy(alpha = 0.2f),
-                    shape = CircleShape
-                )
+                .size(40.dp),
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.2f)
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Назад",
-                tint = Color.White
-            )
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    tint = Color.White
+                )
+            }
         }
 
         // Кнопка избранного
-        IconButton(
-            onClick = onFavoriteClick,
+        Surface(
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.TopEnd)
-                .size(40.dp)
-                .background(
-                    color = Color.White.copy(alpha = 0.2f),
-                    shape = CircleShape
-                )
+                .size(40.dp),
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.2f)
         ) {
-            Icon(
-                imageVector = if (anime.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = "Избранное",
-                tint = if (anime.isFavorite) Color(0xFFFF6B6B) else Color.White
-            )
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = if (anime.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = "Избранное",
+                    tint = if (anime.isFavorite) Color(0xFFFF6B6B) else Color.White
+                )
+            }
         }
 
-        // Рейтинг внизу постера
+        // Рейтинг
         anime.rating?.let { rating ->
             Surface(
                 modifier = Modifier
@@ -302,25 +282,20 @@ private fun HeaderSection(
 }
 
 @Composable
-private fun InfoChipsRow(
-    anime: Anime,
-    modifier: Modifier = Modifier
-) {
+private fun PreviewInfoChipsRow(anime: Anime) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Сезон
         anime.season?.let { season ->
-            InfoChip(
+            PreviewInfoChip(
                 icon = Icons.Filled.DateRange,
                 text = "$season сезон"
             )
         }
 
-        // Эпизоды
         anime.episodes?.let { episodes ->
-            InfoChip(
+            PreviewInfoChip(
                 icon = Icons.Filled.PlayArrow,
                 text = "$episodes эп."
             )
@@ -329,13 +304,11 @@ private fun InfoChipsRow(
 }
 
 @Composable
-private fun InfoChip(
+private fun PreviewInfoChip(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    text: String,
-    modifier: Modifier = Modifier
+    text: String
 ) {
     Surface(
-        modifier = modifier,
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.primaryContainer
     ) {
@@ -360,15 +333,12 @@ private fun InfoChip(
 }
 
 @Composable
-private fun ActionButtonsSection(
+private fun PreviewActionButtonsSection(
     userStatus: AnimeStatus?,
-    userRating: Int?,
-    onStatusClick: () -> Unit,
-    onRatingClick: () -> Unit,
-    modifier: Modifier = Modifier
+    userRating: Int?
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
@@ -382,23 +352,19 @@ private fun ActionButtonsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Кнопка статуса
-            ActionButton(
+            PreviewActionButton(
                 icon = Icons.Filled.List,
                 title = "Статус",
                 subtitle = getStatusDisplayName(userStatus),
                 isActive = userStatus != null,
-                onClick = onStatusClick,
                 modifier = Modifier.weight(1f)
             )
 
-            // Кнопка оценки
-            ActionButton(
+            PreviewActionButton(
                 icon = Icons.Filled.Star,
                 title = "Оценка",
                 subtitle = userRating?.let { "$it / 10" } ?: "Не оценено",
                 isActive = userRating != null,
-                onClick = onRatingClick,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -406,31 +372,27 @@ private fun ActionButtonsSection(
 }
 
 @Composable
-private fun ActionButton(
+private fun PreviewActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,
     isActive: Boolean,
-    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier
             .shadow(
                 elevation = if (isActive) 8.dp else 2.dp,
-                shape = RoundedCornerShape(16.dp),
-                ambientColor = if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0.1f)
+                shape = RoundedCornerShape(16.dp)
             ),
         shape = RoundedCornerShape(16.dp),
-        color = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-        onClick = onClick
+        color = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Иконка в круге
             Surface(
                 shape = CircleShape,
                 color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
@@ -457,21 +419,16 @@ private fun ActionButton(
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                textAlign = TextAlign.Center
             )
         }
     }
 }
 
 @Composable
-private fun DescriptionSection(
-    description: String?,
-    modifier: Modifier = Modifier
-) {
+private fun PreviewDescriptionSection(description: String?) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
@@ -481,7 +438,6 @@ private fun DescriptionSection(
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        // Описание в баббле
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -491,8 +447,8 @@ private fun DescriptionSection(
                 text = description ?: "Описание отсутствует",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                lineHeight = 22.sp,
                 textAlign = TextAlign.Justify,
+                lineHeight = 22.sp,
                 modifier = Modifier.padding(16.dp)
             )
         }
@@ -507,5 +463,69 @@ private fun getStatusDisplayName(status: AnimeStatus?): String {
         AnimeStatus.DROPPED -> "Брошено"
         AnimeStatus.FAVORITE -> "Любимое"
         null -> "Не выбрано"
+    }
+}
+
+// ============ PREVIEW ФУНКЦИИ ============
+
+@Preview(showBackground = true, showSystemUi = true, name = "Без статуса")
+@Composable
+private fun DetailScreenNoStatusPreview() {
+    AnimeListTheme {
+        PreviewDetailContent(anime = sampleAnimeNoStatus)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Смотрю")
+@Composable
+private fun DetailScreenWatchingPreview() {
+    AnimeListTheme {
+        PreviewDetailContent(anime = sampleAnimeWatching)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Просмотрено")
+@Composable
+private fun DetailScreenCompletedPreview() {
+    AnimeListTheme {
+        PreviewDetailContent(anime = sampleAnimeCompleted)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "В планах")
+@Composable
+private fun DetailScreenPlannedPreview() {
+    AnimeListTheme {
+        PreviewDetailContent(anime = sampleAnimePlanned)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Брошено")
+@Composable
+private fun DetailScreenDroppedPreview() {
+    AnimeListTheme {
+        PreviewDetailContent(anime = sampleAnimeDropped)
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Любимое")
+@Composable
+private fun DetailScreenFavoritePreview() {
+    AnimeListTheme {
+        PreviewDetailContent(anime = sampleAnimeFavorite)
+    }
+}
+
+// Тёмная тема
+@Preview(
+    showBackground = true,
+    showSystemUi = true,
+    name = "Тёмная тема",
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun DetailScreenDarkPreview() {
+    AnimeListTheme {
+        PreviewDetailContent(anime = sampleAnimeCompleted)
     }
 }

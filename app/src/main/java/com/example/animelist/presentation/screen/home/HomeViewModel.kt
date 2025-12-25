@@ -100,17 +100,21 @@ class HomeViewModel @Inject constructor(
     }
 
     fun loadMore() {
-        if (_isLoadingMore.value || !_canLoadMore.value) return
+        if (_isLoadingMore.value || !_canLoadMore.value || _searchQuery.value.isNotEmpty()) return
 
         viewModelScope.launch {
             _isLoadingMore.value = true
             currentOffset += pageSize
 
-            repository.getAnime(limit = pageSize, offset = currentOffset).let { newAnime ->
-                if (newAnime.isEmpty()) {
-                    _canLoadMore.value = false
-                }
-                // Аниме автоматически добавятся в Flow через Room
+            println("Loading more: offset = $currentOffset")
+
+            val newAnime = repository.getAnime(limit = pageSize, offset = currentOffset)
+
+            if (newAnime.isEmpty()) {
+                _canLoadMore.value = false
+                println("No more anime to load")
+            } else {
+                println("Loaded ${newAnime.size} more anime")
             }
 
             _isLoadingMore.value = false
