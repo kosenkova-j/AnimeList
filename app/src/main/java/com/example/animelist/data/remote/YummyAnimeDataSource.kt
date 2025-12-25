@@ -22,23 +22,58 @@ class YummyAnimeDataSource @Inject constructor(
         }
     }
 
+//    suspend fun getAnime(limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
+//        println("Запрос к API: getAnime(limit=$limit)")
+//
+//        return try {
+//            val response = api.getAnime(limit, offset)
+//            println("API ответ: код=${response.code()}, успех=${response.isSuccessful}")
+//
+//            if (response.isSuccessful) {
+//                val body = response.body()
+//                println("Тело ответа: $body")
+//                Result.success(body?.data ?: emptyList())
+//            } else {
+//                println("Ошибка API: ${response.errorBody()?.string()}")
+//                Result.failure(Exception("API error: ${response.code()}"))
+//            }
+//        } catch (e: Exception) {
+//            println("Исключение в getAnime: ${e.message}")
+//            Result.failure(e)
+//        }
+//    }
     suspend fun getAnime(limit: Int = 20, offset: Int = 0): Result<List<AnimeDto>> {
-        println("Запрос к API: getAnime(limit=$limit)")
+        println("=== DIAGNOSTIC API ===")
 
         return try {
             val response = api.getAnime(limit, offset)
-            println("API ответ: код=${response.code()}, успех=${response.isSuccessful}")
+            println("Answer code: ${response.code()}")
 
             if (response.isSuccessful) {
+                // 1. Попробуем как есть
                 val body = response.body()
-                println("Тело ответа: $body")
-                Result.success(body?.data ?: emptyList())
+                println("Body type: ${body?.javaClass?.simpleName}")
+
+                // 2. Посмотрим сырой JSON
+                val rawJson = response.raw().body?.string() ?: "null"
+                println("Raw JSON (first 300 symbols):")
+                println(rawJson.take(300))
+
+                // 3. Обработаем
+                if (body != null) {
+                    println("Success: got body")
+                    Result.success(body.data ?: emptyList())
+                } else {
+                    println("Error: empty body")
+                    Result.failure(Exception("Empty response"))
+                }
             } else {
-                println("Ошибка API: ${response.errorBody()?.string()}")
-                Result.failure(Exception("API error: ${response.code()}"))
+                println("HTTP error: ${response.code()}")
+                Result.failure(Exception("HTTP ${response.code()}"))
             }
         } catch (e: Exception) {
-            println("Исключение в getAnime: ${e.message}")
+            println("Exception: ${e.message}")
+            e.printStackTrace()
             Result.failure(e)
         }
     }

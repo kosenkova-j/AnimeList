@@ -7,8 +7,8 @@ import retrofit2.http.*
 interface YummyAnimeApi {
 
     // === АУТЕНТИФИКАЦИЯ ===
-    @POST("profile/login")
-    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+//    @POST("profile/login")
+//    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
     @GET("profile/token")
     suspend fun refreshToken(): Response<TokenRefreshResponse>

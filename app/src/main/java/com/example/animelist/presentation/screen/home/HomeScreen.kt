@@ -13,30 +13,6 @@ import com.example.animelist.presentation.components.AnimeCard
 import com.example.animelist.presentation.screen.home.components.AnimeList
 import com.example.animelist.presentation.screen.home.components.SearchSection
 
-// В HomeScreen.kt замените AnimeList на:
-//@Composable
-//fun AnimeList(
-//    animeList: List<Anime>,
-//    onAnimeClick: (Int) -> Unit,
-//    onToggleFavorite: (Int) -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    LazyColumn(
-//        modifier = modifier,
-//        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-//        verticalArrangement = Arrangement.spacedBy(12.dp)
-//    ) {
-//        items(animeList.size, key = { it.id }) { anime ->
-//            AnimeCard(
-//                anime = anime,
-//                onCardClick = { onAnimeClick(anime.id) },
-//                onFavoriteClick = { onToggleFavorite(anime.id) },
-//                modifier = Modifier.fillMaxWidth()
-//            )
-//        }
-//    }
-//}
-
 // главный экран
 @Composable
 fun HomeScreen(
@@ -45,6 +21,16 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState) {
+        println("=== HOME SCREEN UPDATE ===")
+        println("isLoading: ${uiState.isLoading}")
+        println("error: ${uiState.error}")
+        println("animeList size: ${uiState.animeList.size}")
+        if (uiState.animeList.isNotEmpty()) {
+            println("First anime: ${uiState.animeList.first().title}")
+        }
+    }
 
     Scaffold { padding ->
         Column(

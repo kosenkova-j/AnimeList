@@ -18,17 +18,3 @@ data class AnimeDto(
     @Json(name = "studios") val studios: List<String>?,
     @Json(name = "year") val year: Int?
 )
-
-// data/remote/dto/AnimeListResponse.kt
-@JsonClass(generateAdapter = true)  // ← ДОЛЖНО БЫТЬ!
-data class AnimeListResponse(
-    @Json(name = "data") val data: List<AnimeDto>,
-    @Json(name = "total") val total: Int,
-    @Json(name = "limit") val limit: Int,
-    @Json(name = "offset") val offset: Int
-)
-
-@JsonClass(generateAdapter = true)
-data class AnimeDetailResponse(
-    @Json(name = "data") val data: AnimeDto
-)

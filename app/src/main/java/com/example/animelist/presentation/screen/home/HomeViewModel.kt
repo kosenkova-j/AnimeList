@@ -41,19 +41,19 @@ class HomeViewModel @Inject constructor(
 //    }
 
     init {
-        println("HomeViewModel создан")
+        println("HomeViewModel created")
 
         viewModelScope.launch {
-            println("Инициализация кэша...")
+            println("Initializing cache...")
             initializeCacheUseCase()
-            println("Кэш инициализирован")
+            println("Cache initialized")
             _isLoading.value = false
         }
 
         // Логируем данные из Flow
         viewModelScope.launch {
             getAnimeUseCase().collect { list ->
-                println("Данные из Flow: ${list.size} аниме")
+                println("Info fom Flow: ${list.size} anime")
                 list.forEach { println("  - ${it.title}") }
             }
         }

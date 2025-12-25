@@ -74,37 +74,37 @@ class AnimeRepositoryImpl @Inject constructor(
 
     // === ИНИЦИАЛИЗАЦИЯ КЭША ===
     override suspend fun initializeCache() {
-        println("=== ИНИЦИАЛИЗАЦИЯ КЭША ===")
+        println("=== INITIALIZE CACHE ===")
 
         try {
             val count = animeDao.getCount()
-            println("В БД сейчас: $count записей")
+            println("in DB: $count info")
 
             if (count == 0) {
-                println("БД пуста, загружаем с API...")
+                println("DB is empty, load from API...")
 
                 remoteDataSource.getAnime(limit = 10) // Начните с 10 для теста
                     .fold(
                         onSuccess = { dtoList ->
-                            println("Получено с API: ${dtoList.size} аниме")
+                            println("Get from API: ${dtoList.size} anime")
 
                             val entities = dtoList.map {
-                                println("  Преобразуем: ${it.title}")
+                                println("  Convert: ${it.title}")
                                 it.toEntity()
                             }
 
                             animeDao.insertAllAnime(entities)
-                            println("Сохранено в Room: ${entities.size} аниме")
+                            println("Saved in ROOM: ${entities.size} anime")
                         },
                         onFailure = { error ->
-                            println("ОШИБКА API: ${error.message}")
+                            println("API ERROR: ${error.message}")
                         }
                     )
             } else {
-                println("Кэш уже есть, пропускаем загрузку")
+                println("We have a cache, loading skiped")
             }
         } catch (e: Exception) {
-            println("ИСКЛЮЧЕНИЕ в initializeCache: ${e.message}")
+            println("EXCEPTION в initializeCache: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -118,13 +118,81 @@ class AnimeRepositoryImpl @Inject constructor(
     }
 
     // === ОСНОВНЫЕ МЕТОДЫ ===
+//    override suspend fun getAllAnime(): List<Anime> {
+//        return remoteDataSource.getAnime().fold(
+//            onSuccess = { dtoList -> dtoList.map { it.toDomain() } },
+//            onFailure = {
+//                println("API error getAllAnime: ${it.message}")
+//                emptyList<Anime>()
+//            }
+//        )
+//    }
+
+    // В AnimeRepositoryImpl.kt
     override suspend fun getAllAnime(): List<Anime> {
-        return remoteDataSource.getAnime().fold(
-            onSuccess = { dtoList -> dtoList.map { it.toDomain() } },
-            onFailure = {
-                println("API error getAllAnime: ${it.message}")
-                emptyList<Anime>()
-            }
+        println("=== USE TEST ANIME ===")
+
+        return listOf(
+            Anime(
+                id = 1,
+                title = "Атака титанов",
+                posterUrl = "https://example.com/titan.jpg",
+                description = "Эрен Йегер сражается с титанами",
+                rating = 9.1,
+                episodes = 75,
+                userStatus = AnimeStatus.COMPLETED,
+                userRating = 5,
+                userComment = "Шедевр!",
+                isFavorite = true
+            ),
+            Anime(
+                id = 2,
+                title = "Наруто",
+                posterUrl = "https://example.com/naruto.jpg",
+                description = "Мальчик-ниндзя мечтает стать хокаге",
+                rating = 8.3,
+                episodes = 720,
+                userStatus = AnimeStatus.WATCHING,
+                userRating = 4,
+                userComment = "Длинно, но интересно",
+                isFavorite = false
+            ),
+            Anime(
+                id = 3,
+                title = "Стальной алхимик",
+                posterUrl = "https://example.com/fma.jpg",
+                description = "Братья ищут философский камень",
+                rating = 9.0,
+                episodes = 64,
+                userStatus = AnimeStatus.PLANNED,
+                userRating = null,
+                userComment = null,
+                isFavorite = true
+            ),
+            Anime(
+                id = 4,
+                title = "Твоё имя",
+                posterUrl = "https://example.com/kiminonawa.jpg",
+                description = "Парень и девушка меняются телами",
+                rating = 8.9,
+                episodes = 1,
+                userStatus = AnimeStatus.COMPLETED,
+                userRating = 5,
+                userComment = "Плакала",
+                isFavorite = true
+            ),
+            Anime(
+                id = 5,
+                title = "Чёрный клевер",
+                posterUrl = "https://example.com/blackclover.jpg",
+                description = "Мальчик без магии хочет стать магическим императором",
+                rating = 7.5,
+                episodes = 170,
+                userStatus = AnimeStatus.DROPPED,
+                userRating = 3,
+                userComment = "Надоел главный герой",
+                isFavorite = false
+            )
         )
     }
 
