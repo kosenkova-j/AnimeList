@@ -1,3 +1,4 @@
+// data/mapper/AnimeMapper.kt
 package com.example.animelist.data.mapper
 
 import com.example.animelist.data.local.entities.AnimeEntity
@@ -5,21 +6,22 @@ import com.example.animelist.data.local.entities.UserAnimeEntity
 import com.example.animelist.data.remote.dto.AnimeDto
 import com.example.animelist.domain.model.Anime
 
-// data/mapper/AnimeMapper.kt
 object AnimeMapper {
 
     fun AnimeDto.toEntity() = AnimeEntity(
-        id = id,
-        title = title,
-        titleRu = titleRu,
-        posterUrl = poster,
+        id = animeId,                                    // ? animeId
+        title = title,                                   // ? Просто строка
+        titleRu = title,                                 // ? Одно и то же (API уже на русском)
+        posterUrl = poster?.getBestUrl()?.let {
+            if (it.startsWith("//")) "https:$it" else it // ? Добавляем https:
+        },
         description = description,
-        rating = rating,
+        rating = rating?.average,
         episodes = episodes,
-        type = type,
-        status = status,
-        genres = genres,
-        studios = studios,
+        type = type?.name,
+        status = animeStatus?.title,
+        genres = genres?.mapNotNull { it.title },
+        studios = null,                                  // API не возвращает в списке
         year = year
     )
 
@@ -37,11 +39,13 @@ object AnimeMapper {
     )
 
     fun AnimeDto.toDomain() = Anime(
-        id = id,
-        title = titleRu ?: title,
-        posterUrl = poster,
+        id = animeId,
+        title = title,
+        posterUrl = poster?.getBestUrl()?.let {
+            if (it.startsWith("//")) "https:$it" else it
+        },
         description = description,
-        rating = rating,
+        rating = rating?.average,
         episodes = episodes,
         userStatus = null,
         userRating = null,

@@ -4,6 +4,15 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
+data class RatingDto(
+    @Json(name = "average") val average: Double?,
+    @Json(name = "counters") val counters: Int?,
+    @Json(name = "kp_rating") val kpRating: Double?,
+    @Json(name = "myanimelist_rating") val malRating: Double?,
+    @Json(name = "shikimori_rating") val shikimoriRating: Double?
+)
+
+@JsonClass(generateAdapter = true)
 data class RateAnimeRequest(
     @Json(name = "rating") val rating: Int
 )

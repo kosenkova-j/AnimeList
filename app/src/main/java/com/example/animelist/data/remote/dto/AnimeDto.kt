@@ -5,16 +5,17 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class AnimeDto(
-    @Json(name = "id") val id: Int,
-    @Json(name = "title") val title: String,
-    @Json(name = "title_ru") val titleRu: String?,
-    @Json(name = "poster") val poster: String?,
-    @Json(name = "rating") val rating: Double?,
+    @Json(name = "anime_id") val animeId: Int,              // ? anime_id, не id!
+    @Json(name = "title") val title: String,                 // ? Строка, не объект!
+    @Json(name = "anime_url") val animeUrl: String?,
+    @Json(name = "poster") val poster: PosterDto?,
     @Json(name = "description") val description: String?,
-    @Json(name = "episodes") val episodes: Int?,
-    @Json(name = "type") val type: String?,
-    @Json(name = "status") val status: String?,
-    @Json(name = "genres") val genres: List<String>?,
-    @Json(name = "studios") val studios: List<String>?,
-    @Json(name = "year") val year: Int?
+    @Json(name = "rating") val rating: RatingDto?,
+    @Json(name = "genres") val genres: List<GenreDto>?,
+    @Json(name = "year") val year: Int?,
+    @Json(name = "type") val type: TypeDto?,
+    @Json(name = "anime_status") val animeStatus: AnimeStatusDto?,
+    @Json(name = "episodes") val episodes: Int? = null,      // Может отсутствовать
+    @Json(name = "season") val season: Int? = null,
+    @Json(name = "views") val views: Int? = null
 )

@@ -1,6 +1,5 @@
 package com.example.animelist.presentation.di
 
-//import com.example.animelist.BuildConfig
 import com.example.animelist.data.remote.api.YummyAnimeApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -15,54 +14,87 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-// di/NetworkModule.kt (упрощённый)
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // 1. OkHttpClient
+    // ????? ?????????? YummyAnime
+    private const val APP_TOKEN = "7t4po9p3sj79pjan"
+
+    // ??????? ?????????? URL ? ????????????!
+    private const val BASE_URL = "https://api.yani.tv/"
+
+    // ? NetworkModule.kt
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor { message ->
+            // ??????? ???????, ????? ?? ???????? ??????? ??????
+            if (message.length > 4000) {
+                var i = 0
+                while (i < message.length) {
+                    val end = minOf(i + 4000, message.length)
+                    println("OkHttp: ${message.substring(i, end)}")
+                    i = end
+                }
+            } else {
+                println("OkHttp: $message")
+            }
+        }.apply {
+            level = HttpLoggingInterceptor.Level.BODY  // ? BODY ?????? HEADERS
+        }
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient {
         return OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)  // ???????? ??? ??????? ???????????
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            // ??????????? ? ???????
             .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
+                val original = chain.request()
+
+                val request = original.newBuilder()
+                    .addHeader("X-Application", APP_TOKEN)  // ? ????????!
                     .addHeader("Accept", "application/json")
-                    .addHeader("Accept", "image/avif,image/webp")
                     .addHeader("Lang", "ru")
+                    .method(original.method, original.body)
                     .build()
+
+                println(">>> Request: ${request.method} ${request.url}")
+                println(">>> Headers: ${request.headers}")
+
                 chain.proceed(request)
             }
+            .addInterceptor(loggingInterceptor)
             .build()
     }
 
-    // 2. Moshi (ЕСЛИ ИСПОЛЬЗУЕТЕ MOSHI)
     @Provides
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())  // Для Kotlin классов
+            .add(KotlinJsonAdapterFactory())
             .build()
     }
 
-    // 3. Retrofit с Moshi
     @Provides
     @Singleton
     fun provideRetrofit(
         okHttpClient: OkHttpClient,
-        moshi: Moshi  // ← ПОЛУЧАЕМ MOSHI
+        moshi: Moshi
     ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://api.yani.tv/")  // ← URL ПРАВИЛЬНЫЙ
+            .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))  // ← ПЕРЕДАЁМ MOSHI
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
     }
 
-    // 4. API интерфейс
     @Provides
     @Singleton
     fun provideYummyAnimeApi(retrofit: Retrofit): YummyAnimeApi {
